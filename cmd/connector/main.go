@@ -7,6 +7,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/jaedle/concourse-claude-connector/internal/concourse"
 	"github.com/jaedle/concourse-claude-connector/internal/server"
 )
 
@@ -25,16 +26,34 @@ func main() {
 		os.Exit(health(port))
 	}
 
+	config := server.Config{
+		Concourse: concourse.Config{
+			URL:      requireEnv("CONCOURSE_URL"),
+			Username: requireEnv("CONCOURSE_USERNAME"),
+			Password: requireEnv("CONCOURSE_PASSWORD"),
+		},
+		Version: version,
+	}
+
 	slog.Info("starting server", "port", port, "version", version)
 	httpServer := &http.Server{
 		Addr:              ":" + port,
-		Handler:           server.New().Handler(),
+		Handler:           server.New(config).Handler(),
 		ReadHeaderTimeout: 10 * time.Second,
 	}
 	if err := httpServer.ListenAndServe(); err != nil {
 		slog.Error("server failed", "error", err)
 		os.Exit(1)
 	}
+}
+
+func requireEnv(name string) string {
+	value := os.Getenv(name)
+	if value == "" {
+		slog.Error("missing required environment variable", "name", name)
+		os.Exit(1)
+	}
+	return value
 }
 
 func health(port string) int {

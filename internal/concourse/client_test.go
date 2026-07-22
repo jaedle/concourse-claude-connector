@@ -7,18 +7,19 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/jaedle/concourse-claude-connector/internal/concourse"
+	"github.com/jaedle/concourse-claude-connector/internal/concourse/concoursetest"
 )
 
 var _ = Describe("Client", func() {
-	var fake *fakeConcourse
+	var fake *concoursetest.Fake
 	var client *concourse.Client
 
 	BeforeEach(func() {
-		fake = newFakeConcourse("a-user", "a-password")
-		DeferCleanup(fake.close)
+		fake = concoursetest.New("a-user", "a-password")
+		DeferCleanup(fake.Close)
 
 		client = concourse.NewClient(concourse.Config{
-			URL:      fake.url(),
+			URL:      fake.URL(),
 			Username: "a-user",
 			Password: "a-password",
 		})
@@ -26,7 +27,7 @@ var _ = Describe("Client", func() {
 
 	Describe("Pipelines", func() {
 		It("lists pipelines across teams", func() {
-			fake.setPipelines([]map[string]any{
+			fake.SetPipelines([]map[string]any{
 				{"name": "deploy", "team_name": "main", "paused": false, "public": true, "archived": false},
 				{"name": "nightly", "team_name": "other", "paused": true, "public": false, "archived": true},
 			})
@@ -44,11 +45,11 @@ var _ = Describe("Client", func() {
 			_, err := client.Pipelines(context.Background())
 
 			Expect(err).NotTo(HaveOccurred())
-			Expect(fake.lastLoginRequest()).To(Equal(loginRequest{
-				clientID:     "fly",
-				clientSecret: "Zmx5",
-				grantType:    "password",
-				scope:        "openid profile email federated:id groups",
+			Expect(fake.LastLogin()).To(Equal(concoursetest.LoginRequest{
+				ClientID:     "fly",
+				ClientSecret: "Zmx5",
+				GrantType:    "password",
+				Scope:        "openid profile email federated:id groups",
 			}))
 		})
 
@@ -59,23 +60,23 @@ var _ = Describe("Client", func() {
 			_, err = client.Pipelines(context.Background())
 
 			Expect(err).NotTo(HaveOccurred())
-			Expect(fake.loginCount()).To(Equal(1))
+			Expect(fake.LoginCount()).To(Equal(1))
 		})
 
 		It("logs in again when the token is rejected", func() {
 			_, err := client.Pipelines(context.Background())
 			Expect(err).NotTo(HaveOccurred())
-			fake.invalidateToken()
+			fake.InvalidateToken()
 
 			_, err = client.Pipelines(context.Background())
 
 			Expect(err).NotTo(HaveOccurred())
-			Expect(fake.loginCount()).To(Equal(2))
+			Expect(fake.LoginCount()).To(Equal(2))
 		})
 
 		It("fails on invalid credentials", func() {
 			client = concourse.NewClient(concourse.Config{
-				URL:      fake.url(),
+				URL:      fake.URL(),
 				Username: "a-user",
 				Password: "wrong-password",
 			})

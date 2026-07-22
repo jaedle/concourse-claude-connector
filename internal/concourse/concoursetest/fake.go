@@ -1,4 +1,5 @@
-package concourse_test
+// Package concoursetest provides a fake Concourse for tests.
+package concoursetest
 
 import (
 	"encoding/json"
@@ -8,7 +9,14 @@ import (
 	"sync"
 )
 
-type fakeConcourse struct {
+type LoginRequest struct {
+	ClientID     string
+	ClientSecret string
+	GrantType    string
+	Scope        string
+}
+
+type Fake struct {
 	server *httptest.Server
 
 	mutex        sync.Mutex
@@ -17,18 +25,11 @@ type fakeConcourse struct {
 	pipelines    []map[string]any
 	logins       int
 	currentToken string
-	lastLogin    loginRequest
+	lastLogin    LoginRequest
 }
 
-type loginRequest struct {
-	clientID     string
-	clientSecret string
-	grantType    string
-	scope        string
-}
-
-func newFakeConcourse(username, password string) *fakeConcourse {
-	fake := &fakeConcourse{username: username, password: password}
+func New(username, password string) *Fake {
+	fake := &Fake{username: username, password: password}
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("POST /sky/issuer/token", fake.handleToken)
@@ -38,17 +39,17 @@ func newFakeConcourse(username, password string) *fakeConcourse {
 	return fake
 }
 
-func (f *fakeConcourse) handleToken(w http.ResponseWriter, r *http.Request) {
+func (f *Fake) handleToken(w http.ResponseWriter, r *http.Request) {
 	f.mutex.Lock()
 	defer f.mutex.Unlock()
 
 	clientID, clientSecret, _ := r.BasicAuth()
 	_ = r.ParseForm()
-	f.lastLogin = loginRequest{
-		clientID:     clientID,
-		clientSecret: clientSecret,
-		grantType:    r.PostFormValue("grant_type"),
-		scope:        r.PostFormValue("scope"),
+	f.lastLogin = LoginRequest{
+		ClientID:     clientID,
+		ClientSecret: clientSecret,
+		GrantType:    r.PostFormValue("grant_type"),
+		Scope:        r.PostFormValue("scope"),
 	}
 
 	if clientID != "fly" || clientSecret != "Zmx5" ||
@@ -67,11 +68,11 @@ func (f *fakeConcourse) handleToken(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (f *fakeConcourse) handlePipelines(w http.ResponseWriter, r *http.Request) {
+func (f *Fake) handlePipelines(w http.ResponseWriter, r *http.Request) {
 	f.mutex.Lock()
 	defer f.mutex.Unlock()
 
-	if r.Header.Get("Authorization") != "Bearer "+f.currentToken || f.currentToken == "" {
+	if f.currentToken == "" || r.Header.Get("Authorization") != "Bearer "+f.currentToken {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
@@ -80,34 +81,34 @@ func (f *fakeConcourse) handlePipelines(w http.ResponseWriter, r *http.Request) 
 	_ = json.NewEncoder(w).Encode(f.pipelines)
 }
 
-func (f *fakeConcourse) setPipelines(pipelines []map[string]any) {
+func (f *Fake) SetPipelines(pipelines []map[string]any) {
 	f.mutex.Lock()
 	defer f.mutex.Unlock()
 	f.pipelines = pipelines
 }
 
-func (f *fakeConcourse) invalidateToken() {
+func (f *Fake) InvalidateToken() {
 	f.mutex.Lock()
 	defer f.mutex.Unlock()
 	f.currentToken = ""
 }
 
-func (f *fakeConcourse) loginCount() int {
+func (f *Fake) LoginCount() int {
 	f.mutex.Lock()
 	defer f.mutex.Unlock()
 	return f.logins
 }
 
-func (f *fakeConcourse) lastLoginRequest() loginRequest {
+func (f *Fake) LastLogin() LoginRequest {
 	f.mutex.Lock()
 	defer f.mutex.Unlock()
 	return f.lastLogin
 }
 
-func (f *fakeConcourse) url() string {
+func (f *Fake) URL() string {
 	return f.server.URL
 }
 
-func (f *fakeConcourse) close() {
+func (f *Fake) Close() {
 	f.server.Close()
 }
