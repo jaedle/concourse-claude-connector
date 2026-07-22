@@ -1,0 +1,53 @@
+version: '3'
+
+tasks:
+  default:
+    deps: [ci]
+
+  fmt:
+    cmds:
+      - go fmt ./...
+
+  lint:
+    cmds:
+      - golangci-lint run
+
+  test:
+    cmds:
+      - go test ./...
+
+  test:e2e:
+    cmds:
+      - go test -tags e2e -count=1 ./test/e2e/...
+
+  manage-dependencies:
+    cmds:
+      - go mod verify
+      - go mod tidy
+      - go mod vendor
+
+  build:
+    env:
+      CGO_ENABLED: '0'
+    cmds:
+      - go build -ldflags='-s -w' -o out/connector ./cmd/connector
+
+  ci:
+    cmds:
+      - task: fmt
+      - task: lint
+      - task: test
+      - task: test:e2e
+      - task: build
+
+  release:
+    cmds:
+      - npm clean-install
+      - npx semantic-release
+
+  release:publish:
+    requires:
+      vars: [VERSION]
+    cmds:
+      - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+      - docker buildx build --push --platform linux/arm64,linux/amd64 -f build/package/Dockerfile --build-arg VERSION={{.VERSION}} -t jaedle/concourse-claude-connector:{{.VERSION}} -t jaedle/concourse-claude-connector:latest .
