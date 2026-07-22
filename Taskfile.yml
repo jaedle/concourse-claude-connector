@@ -5,34 +5,41 @@ tasks:
     deps: [ci]
 
   fmt:
+    desc: Format go sources
     cmds:
       - go fmt ./...
 
   lint:
+    desc: Run static analysis
     cmds:
       - golangci-lint run
 
   test:
+    desc: Run unit tests
     cmds:
       - go test ./...
 
   test:e2e:
+    desc: Run end-to-end tests
     cmds:
       - go test -tags e2e -count=1 ./test/e2e/...
 
   manage-dependencies:
+    desc: Verify, tidy and vendor go dependencies
     cmds:
       - go mod verify
       - go mod tidy
       - go mod vendor
 
   build:
+    desc: Build the connector binary
     env:
       CGO_ENABLED: '0'
     cmds:
       - go build -ldflags='-s -w' -o out/connector ./cmd/connector
 
   ci:
+    desc: Run all verification steps
     cmds:
       - task: fmt
       - task: lint
@@ -41,11 +48,13 @@ tasks:
       - task: build
 
   release:
+    desc: Create a release via semantic-release
     cmds:
       - npm clean-install
       - npx semantic-release
 
   release:publish:
+    desc: Build and push the multi-platform docker image
     requires:
       vars: [VERSION]
     cmds:

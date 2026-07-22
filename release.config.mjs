@@ -1,4 +1,5 @@
 const headerPattern = /^(?:[^\w\s]+\s)?(\w+)(?:\(([^)]*)\))?!?: (.+)$/u;
+const breakingHeaderPattern = /^(?:[^\w\s]+\s)?(\w+)(?:\(([^)]*)\))?!: (.+)$/u;
 
 export default {
   branches: ['main'],
@@ -7,14 +8,14 @@ export default {
       '@semantic-release/commit-analyzer',
       {
         preset: 'conventionalcommits',
-        parserOpts: { headerPattern },
+        parserOpts: { headerPattern, breakingHeaderPattern },
       },
     ],
     [
       '@semantic-release/release-notes-generator',
       {
         preset: 'conventionalcommits',
-        parserOpts: { headerPattern },
+        parserOpts: { headerPattern, breakingHeaderPattern },
       },
     ],
     '@semantic-release/changelog',
@@ -29,7 +30,8 @@ export default {
       '@semantic-release/git',
       {
         assets: ['CHANGELOG.md'],
-        message: '🔖 chore(release): ${nextRelease.version} [skip ci]',
+        message:
+          '🔖 chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}',
       },
     ],
   ],
