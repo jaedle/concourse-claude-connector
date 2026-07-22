@@ -15,3 +15,10 @@ func readAll(response *http.Response) ([]byte, error) {
 	}
 	return body, nil
 }
+
+func truncate(body []byte, limit int) string {
+	if len(body) > limit {
+		return string(body[:limit]) + "…"
+	}
+	return string(body)
+}

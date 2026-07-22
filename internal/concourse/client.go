@@ -41,6 +41,7 @@ type Client struct {
 }
 
 func NewClient(config Config) *Client {
+	config.URL = strings.TrimRight(config.URL, "/")
 	return &Client{
 		config:     config,
 		httpClient: &http.Client{Timeout: 30 * time.Second},
@@ -143,13 +144,13 @@ func (c *Client) login(ctx context.Context) (string, error) {
 	}
 	defer func() { _ = response.Body.Close() }()
 
-	if response.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("login failed with status %d", response.StatusCode)
-	}
-
 	body, err := readAll(response)
 	if err != nil {
 		return "", err
+	}
+
+	if response.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("login failed with status %d: %s", response.StatusCode, truncate(body, 256))
 	}
 
 	var token struct {
