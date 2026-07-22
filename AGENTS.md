@@ -16,6 +16,7 @@ implemented yet.
 - `internal/concourse` — Concourse API client (sky token login, token cache)
 - `internal/concourse/concoursetest` — fake Concourse for tests
 - `test/e2e` — compose-based end-to-end test (build tag `e2e`)
+- `tools/mcpsnapshot` — prints the advertised tools; input for `mcpgrade`
 - `build/package/Dockerfile` — multi-stage build to `scratch`
 - `deployments/` — example deployment
 - `ci/config.yaml` — consumed by `jaedle/pipeline-service`, which generates the
@@ -24,6 +25,11 @@ implemented yet.
 ## Workflow
 
 - `task ci` must be green — that is the definition of done
+- The MCP interface is linted by `mcpgrade` (`task test:mcp`) against a snapshot
+  generated in-process; no server needs to run. Tool descriptions and schemas
+  are the interface documentation — keep them meaningful.
+  `.mcpgraderc.json` disables S004: it flags argument-less tools, which is a
+  false positive here.
 - Dependencies are vendored: after changing them run `task manage-dependencies`
 - Commits: gitmoji + conventional commits (`✨ feat: ...`, `🔧 chore: ...`)
 - Releases are automatic via semantic-release on `main`

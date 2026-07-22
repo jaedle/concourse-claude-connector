@@ -22,6 +22,14 @@ type ListPipelinesOutput struct {
 }
 
 func NewHandler(client *concourse.Client, version string) http.Handler {
+	server := NewServer(client, version)
+
+	return sdk.NewStreamableHTTPHandler(func(*http.Request) *sdk.Server {
+		return server
+	}, &sdk.StreamableHTTPOptions{Stateless: true})
+}
+
+func NewServer(client *concourse.Client, version string) *sdk.Server {
 	server := sdk.NewServer(&sdk.Implementation{
 		Name:    "concourse-claude-connector",
 		Title:   "Concourse CI",
@@ -33,9 +41,7 @@ func NewHandler(client *concourse.Client, version string) http.Handler {
 		Description: "List all Concourse pipelines visible to the configured user, across all teams.",
 	}, listPipelines(client))
 
-	return sdk.NewStreamableHTTPHandler(func(*http.Request) *sdk.Server {
-		return server
-	}, &sdk.StreamableHTTPOptions{Stateless: true})
+	return server
 }
 
 func listPipelines(client *concourse.Client) func(context.Context, *sdk.CallToolRequest, struct{}) (*sdk.CallToolResult, ListPipelinesOutput, error) {

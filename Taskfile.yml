@@ -24,6 +24,13 @@ tasks:
     cmds:
       - go test -tags e2e -count=1 ./test/e2e/...
 
+  test:mcp:
+    desc: Grade the mcp interface for agent usability
+    cmds:
+      - mkdir -p out
+      - go run ./tools/mcpsnapshot > out/mcp-snapshot.json
+      - npx -y mcpgrade@0.1.0 --snapshot out/mcp-snapshot.json --json --fail-on warn
+
   manage-dependencies:
     desc: Verify, tidy and vendor go dependencies
     cmds:
@@ -46,6 +53,7 @@ tasks:
       - task: test
       - task: test:e2e
       - task: build
+      - task: test:mcp
 
   release:
     desc: Create a release via semantic-release
