@@ -35,7 +35,7 @@ func NewHandler(client *concourse.Client, version string) http.Handler {
 
 	return sdk.NewStreamableHTTPHandler(func(*http.Request) *sdk.Server {
 		return server
-	}, nil)
+	}, &sdk.StreamableHTTPOptions{Stateless: true})
 }
 
 func listPipelines(client *concourse.Client) func(context.Context, *sdk.CallToolRequest, struct{}) (*sdk.CallToolResult, ListPipelinesOutput, error) {
