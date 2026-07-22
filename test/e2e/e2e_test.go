@@ -44,8 +44,8 @@ var _ = Describe("Connector", Ordered, func() {
 		Expect(err).NotTo(HaveOccurred())
 		DeferCleanup(fake.Close)
 
+		DeferCleanup(func() { compose("down", "-v", "--rmi", "local") })
 		compose("up", "-d", "--build")
-		DeferCleanup(func() { compose("down", "-v") })
 
 		port := strings.TrimSpace(compose("port", "connector", "8080"))
 		baseURL = "http://" + port

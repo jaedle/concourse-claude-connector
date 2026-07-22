@@ -1,10 +1,10 @@
 services:
   connector:
-    image: jaedle/concourse-claude-connector:latest
+    image: jaedle/concourse-claude-connector:${VERSION:-latest}
     restart: unless-stopped
     ports:
       - '8080:8080'
     environment:
-      CONCOURSE_URL: ${CONCOURSE_URL}
-      CONCOURSE_USERNAME: ${CONCOURSE_USERNAME}
-      CONCOURSE_PASSWORD: ${CONCOURSE_PASSWORD}
+      CONCOURSE_URL: ${CONCOURSE_URL:?}
+      CONCOURSE_USERNAME: ${CONCOURSE_USERNAME:?}
+      CONCOURSE_PASSWORD: ${CONCOURSE_PASSWORD:?}

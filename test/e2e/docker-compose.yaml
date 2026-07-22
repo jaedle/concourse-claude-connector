@@ -10,5 +10,7 @@ services:
       CONCOURSE_PASSWORD: e2e-password
     ports:
       - '127.0.0.1::8080'
+    # requires dockerd in the same network namespace as the test process
+    # (holds locally and in concourse docker-in-docker tasks)
     extra_hosts:
       - host.docker.internal:host-gateway
