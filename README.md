@@ -17,6 +17,18 @@ Environment variables:
 | `CONCOURSE_USERNAME` | —       | Concourse local user               |
 | `CONCOURSE_PASSWORD` | —       | Concourse local user password      |
 
+## Endpoints
+
+- `/mcp` — MCP Streamable HTTP
+- `/health` — health check
+
+## Deployment
+
+```sh
+cd deployments
+CONCOURSE_URL=... CONCOURSE_USERNAME=... CONCOURSE_PASSWORD=... docker compose up -d
+```
+
 ## Development
 
 ```sh

@@ -1,0 +1,14 @@
+services:
+  connector:
+    build:
+      context: ../..
+      dockerfile: build/package/Dockerfile
+    environment:
+      PORT: '8080'
+      CONCOURSE_URL: http://host.docker.internal:${CONCOURSE_PORT}
+      CONCOURSE_USERNAME: e2e-user
+      CONCOURSE_PASSWORD: e2e-password
+    ports:
+      - '127.0.0.1::8080'
+    extra_hosts:
+      - host.docker.internal:host-gateway

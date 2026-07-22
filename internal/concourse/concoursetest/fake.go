@@ -4,6 +4,7 @@ package concoursetest
 import (
 	"encoding/json"
 	"fmt"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"sync"
@@ -29,12 +30,32 @@ type Fake struct {
 }
 
 func New(username, password string) *Fake {
+	fake := newFake(username, password)
+	fake.server.Start()
+	return fake
+}
+
+// NewListening serves on the given address, e.g. "0.0.0.0:0" to make the fake
+// reachable from containers in end-to-end tests.
+func NewListening(address, username, password string) (*Fake, error) {
+	listener, err := net.Listen("tcp", address)
+	if err != nil {
+		return nil, fmt.Errorf("listen on %s: %w", address, err)
+	}
+
+	fake := newFake(username, password)
+	fake.server.Listener = listener
+	fake.server.Start()
+	return fake, nil
+}
+
+func newFake(username, password string) *Fake {
 	fake := &Fake{username: username, password: password}
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("POST /sky/issuer/token", fake.handleToken)
 	mux.HandleFunc("GET /api/v1/pipelines", fake.handlePipelines)
-	fake.server = httptest.NewServer(mux)
+	fake.server = httptest.NewUnstartedServer(mux)
 
 	return fake
 }
@@ -107,6 +128,11 @@ func (f *Fake) LastLogin() LoginRequest {
 
 func (f *Fake) URL() string {
 	return f.server.URL
+}
+
+func (f *Fake) Port() string {
+	_, port, _ := net.SplitHostPort(f.server.Listener.Addr().String())
+	return port
 }
 
 func (f *Fake) Close() {
