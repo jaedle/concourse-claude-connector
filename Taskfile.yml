@@ -17,6 +17,13 @@ tasks:
   test:
     desc: Run unit tests
     cmds:
+      - go test ./...
+
+  test:race:
+    desc: Run unit tests with the race detector (needs a C toolchain)
+    env:
+      CGO_ENABLED: '1'
+    cmds:
       - go test -race ./...
 
   test:e2e:
