@@ -42,3 +42,4 @@ implemented yet.
 - Tests: ginkgo/gomega, `_test.go` alongside the code, arrange/act/assert
   separated by blank lines
 - No standalone golangci-lint config — defaults of golangci-lint v2
+- Verify changes with a full `task ci` before committing.
