@@ -33,7 +33,7 @@ github.com/modelcontextprotocol/go-sdk/internal/xcontext
 github.com/modelcontextprotocol/go-sdk/jsonrpc
 github.com/modelcontextprotocol/go-sdk/mcp
 github.com/modelcontextprotocol/go-sdk/oauthex
-# github.com/onsi/ginkgo/v2 v2.32.0
+# github.com/onsi/ginkgo/v2 v2.32.1
 ## explicit; go 1.25.0
 github.com/onsi/ginkgo/v2
 github.com/onsi/ginkgo/v2/config
